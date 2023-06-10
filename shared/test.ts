@@ -26,7 +26,7 @@ export class StringMessageEntry implements MessageEntry
         this.time = new Date().toISOString(); 
         if (time != undefined) this.time = time;
         this.senderID = senderID; 
-        this.message = message; 
+        this.message = `wrapped_${message}_wrapped`; 
     }
 }
 

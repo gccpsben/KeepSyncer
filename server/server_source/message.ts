@@ -1,7 +1,7 @@
 import { Socket } from "socket.io";
 import { checkForPermission, checkForPermissionREST, sockets } from "./auth";
 import { Request, Response } from "express";
-import { FileMessageEntry, MessageEntry, MessageType, StringMessageEntry } from './types';
+import { FileMessageEntry, MessageEntry, MessageType, StringMessageEntry } from './shared/test';
 import * as fs from 'fs';
 
 export var allMessages = [] as Array<MessageEntry>;
@@ -23,7 +23,7 @@ export function init(socketIOInstance: Socket, expressInstance: any)
         {
             if (checkForPermissionREST(req,res))
             {
-                var fileNameRequested = req.query["filename"].toString();
+                var fileNameRequested = req.query["filename"]!.toString();
                 res.download(`./${fileNameRequested}`, fileNameRequested, { root: "./temp/" });
             }
         }

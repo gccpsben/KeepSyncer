@@ -2,7 +2,7 @@ import { Socket } from "socket.io";
 import { logGreen } from "./extendedLog";
 import { v4 as uuidv4 } from 'uuid';
 import { CookieOptions, Request, Response } from "express";
-import { FileMessageEntry, MessageEntry, MessageType, StringMessageEntry } from './types';
+import { FileMessageEntry, MessageEntry, MessageType, StringMessageEntry } from './shared/test';
 import * as jwt from 'jsonwebtoken';
 var cookie = require('cookie');
 
@@ -68,7 +68,7 @@ export function checkForPermission(socketInstance: Socket)
         socketInstance.emit(`unauthorized`, {error: `Invalid token`});
         return false;
     }
-    if (!validatedTokens.find(x => x.token == authToken).isValid)
+    if (!validatedTokens.find(x => x.token == authToken)!.isValid)
     {
         socketInstance.emit(`unauthorized`, {error: `Invalid token`});
         return false;
@@ -124,7 +124,7 @@ export function onNewSocketConnected(socketInstance: Socket)
             
         if (validatedTokens.find(x => x.token == token) != undefined)
         {
-            sockets.find(x => x.socket.id == socketInstance.id).isLoggedIn = true;
+            sockets.find(x => x.socket.id == socketInstance.id)!.isLoggedIn = true;
             console.log(`socket ${socketInstance.id} logged-in.`);
 
             // Broadcast connect event to all other sockets
@@ -220,7 +220,7 @@ export function onNewSocketConnected(socketInstance: Socket)
             if (checkForPermission(socketInstance))
             {
                 var jwtReceived = data.token;
-                var payload = jwt.verify(jwtReceived, process.env.JWT_SECRET) as 
+                var payload = jwt.verify(jwtReceived, process.env.JWT_SECRET!)! as 
                 {
                     clientSocketID: string,
                     clientUserAgent: string,
@@ -247,7 +247,7 @@ export function onNewSocketConnected(socketInstance: Socket)
             salt: uuidv4()
         };
 
-        var jwtToken = jwt.sign(jwtPayload, process.env.JWT_SECRET, 
+        var jwtToken = jwt.sign(jwtPayload, process.env.JWT_SECRET!, 
         {
             expiresIn: 60, // seconds
         });

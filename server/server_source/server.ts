@@ -2,6 +2,7 @@
 
 import { CookieOptions, Request, Response } from "express";
 import { logGreen, logRed, log, logBlue, getLog } from "./extendedLog";
+
 const Express = require("express");
 var fs = require("fs");
 var minify = require('express-minify');

@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { useMainStore } from '@/stores/main';
 import { ref } from 'vue';
-import { FileMessageEntry, MessageType, StringMessageEntry } from '@/types';
 import { Html5Qrcode } from "html5-qrcode";
 </script>
 
 <script lang="ts">
+import { FileMessageEntry, MessageEntry, MessageType, StringMessageEntry } from '../shared/test';
 
 export default 
 {

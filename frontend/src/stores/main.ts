@@ -2,7 +2,7 @@ import axios from 'axios';
 import { defineStore } from 'pinia'
 import { io, type Socket } from 'socket.io-client';
 import { useRouter } from 'vue-router';
-import { FileMessageEntry, MessageEntry, MessageType, StringMessageEntry } from 'shared';
+import { FileMessageEntry, MessageEntry, MessageType, StringMessageEntry } from '../shared/test';
 
 export declare class SocketIOFileUpload
 {
