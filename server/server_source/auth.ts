@@ -2,6 +2,7 @@ import { Socket } from "socket.io";
 import { logGreen } from "./extendedLog";
 import { v4 as uuidv4 } from 'uuid';
 import { CookieOptions, Request, Response } from "express";
+import { FileMessageEntry, MessageEntry, MessageType, StringMessageEntry } from './types';
 import * as jwt from 'jsonwebtoken';
 var cookie = require('cookie');
 
@@ -185,18 +186,12 @@ export function onNewSocketConnected(socketInstance: Socket)
 
                 // Broadcast connect event to all other sockets
                 var fileUploadedName = event.file.pathName.split("\\").at(-1);
+                var entry = new FileMessageEntry(socketInstance.id, fileUploadedName, event.file.size);
                 sockets.forEach(soc => 
                 {
-                    soc.socket.emit(`file uploaded`, 
-                    { 
-                        from: socketInstance.id,
-                        fileName: fileUploadedName,
-                        fileSize: event.file.size,
-                        mtime: event.file.mtime
-                    }); 
+                    soc.socket.emit(`file uploaded`, entry); 
                 });
-                console.log(`File ${fileUploadedName} uploaded`);
-                message.filesUploaded.push(new message.FileUploadedEntry(fileUploadedName, socketInstance.id));
+                message.allMessages.push(entry);
             })
             uploader.dir = "./temp";
             uploader.listen(socketInstance);

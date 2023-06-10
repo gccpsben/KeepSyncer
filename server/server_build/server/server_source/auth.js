@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.init = exports.onNewSocketConnected = exports.isSocketAuthenticated = exports.setResponseCookie = exports.checkForPermissionREST = exports.checkForPermission = exports.sockets = void 0;
 var extendedLog_1 = require("./extendedLog");
 var uuid_1 = require("uuid");
-var types_1 = require("./types");
+var types_ts_1 = require("@shared/types.ts");
 var jwt = require("jsonwebtoken");
 var cookie = require('cookie');
 var SocketEntry = /** @class */ (function () {
@@ -159,7 +159,7 @@ function onNewSocketConnected(socketInstance) {
                 */
                 // Broadcast connect event to all other sockets
                 var fileUploadedName = event.file.pathName.split("\\").at(-1);
-                var entry = new types_1.FileMessageEntry(socketInstance.id, fileUploadedName, event.file.size);
+                var entry = new types_ts_1.FileMessageEntry(socketInstance.id, fileUploadedName, event.file.size);
                 exports.sockets.forEach(function (soc) {
                     soc.socket.emit("file uploaded", entry);
                 });

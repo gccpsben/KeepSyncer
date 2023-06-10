@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.init = exports.allMessages = void 0;
 var auth_1 = require("./auth");
-var types_1 = require("./types");
+var types_1 = require("@shared/types");
 exports.allMessages = [];
 function init(socketIOInstance, expressInstance) {
     expressInstance.get("/api/refreshMessages", function (req, res) {

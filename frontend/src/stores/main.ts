@@ -2,28 +2,12 @@ import axios from 'axios';
 import { defineStore } from 'pinia'
 import { io, type Socket } from 'socket.io-client';
 import { useRouter } from 'vue-router';
-import { MessageType } from '@/types';
+import { FileMessageEntry, MessageEntry, MessageType, StringMessageEntry } from 'shared';
 
-declare class SocketIOFileUpload
+export declare class SocketIOFileUpload
 {
     constructor(socket:any)
     listenOnInput(socket:any):any
-}
-
-export class MessageEntry
-{
-    messageType: MessageType = MessageType.string;
-    message: string = "";
-    senderID: string = "";
-    downloadLink: string = "";
-    fileBytes: number = 0;
-    fileName: string = "";
-
-    constructor(message:string, senderID: string, messageType:MessageType=MessageType.string) 
-    { 
-        this.message = message; this.senderID = senderID; 
-        this.messageType = messageType;
-    }
 }
 
 export const useMainStore = defineStore(
@@ -41,7 +25,7 @@ export const useMainStore = defineStore(
             authTokenExpireDate: undefined as Date | undefined,
             authTokenCreationDate: undefined as Date | undefined,
             router: useRouter(),
-            messages: [] as Array<MessageEntry>
+            messages: [] as Array<StringMessageEntry|FileMessageEntry>
         };
         return data;
     },
@@ -121,18 +105,12 @@ export const useMainStore = defineStore(
 
                     self.socketClient.on("new message", data => 
                     {
-                        var message = data.message;
-                        var senderID = data.from;
-                        self.messages.push(new MessageEntry(message, senderID));
+                        self.messages.push(new StringMessageEntry(data.senderID, data.message, data.time));
                     });
 
                     self.socketClient.on("file uploaded", data => 
                     {
-                        var senderID = data.from;
-                        var messageEntry = new MessageEntry("", senderID, MessageType.file);
-                        messageEntry.fileBytes = data.fileSize;
-                        messageEntry.fileName = data.fileName;
-                        messageEntry.downloadLink = `./api/download?filename=${data.fileName}`;
+                        var messageEntry = new FileMessageEntry(data.senderID, data.fileName, data.fileSize, data.time);
                         self.messages.push(messageEntry);
                     });
                     

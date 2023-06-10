@@ -1,9 +1,11 @@
 {
   "compilerOptions": 
   {
+    "baseUrl": "./",
     "outDir":"./server_build",
     "experimentalDecorators":true,
     "emitDecoratorMetadata": true,
+    "rootDirs": ["./server_source"],
   },
   "include": [
     "server_source/**/*.ts",

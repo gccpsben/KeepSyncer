@@ -1,23 +1,22 @@
 import { Socket } from "socket.io";
 import { checkForPermission, checkForPermissionREST, sockets } from "./auth";
 import { Request, Response } from "express";
+import { FileMessageEntry, MessageEntry, MessageType, StringMessageEntry } from './types';
 import * as fs from 'fs';
 
-export class FileUploadedEntry
-{
-    fileName: string = "";
-    fromSocketID: string = "";
-    constructor(fileName:string, fromSocketID: string) 
-    {
-        this.fileName = fileName;
-        this.fromSocketID = fromSocketID;
-    }
-}
-
-export var filesUploaded = [] as Array<FileUploadedEntry>;
+export var allMessages = [] as Array<MessageEntry>;
 
 export function init(socketIOInstance: Socket, expressInstance: any)
 {
+    expressInstance.get("/api/refreshMessages", (req:Request, res:Response) => 
+    {
+        try
+        {
+            if (checkForPermissionREST(req,res)) res.json(allMessages);
+        }
+        catch(error) { res.status(500).json({}); }
+    });
+
     expressInstance.get("/api/download", (req:Request, res:Response) => 
     {
         try
@@ -42,13 +41,14 @@ export function init(socketIOInstance: Socket, expressInstance: any)
         {
             if (checkForPermission(socket))
             {
+                var entry = new StringMessageEntry(socket.id, data.message);
                 for (var soc of sockets)
                 {
                     if (!soc.isLoggedIn) continue;
                     // Send "new message" event to all sockets except this socket.
-                    soc.socket.emit("new message", {message: data.message, from: socket.id});
+                    soc.socket.emit("new message", entry);
                 }
-                console.log(`${socket.id} sent ${data.message}`);
+                allMessages.push(entry);
             } 
         });
     });
