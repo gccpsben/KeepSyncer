@@ -14,7 +14,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
-        while (g && (g = 0, op[0] && (_ = 0)), _) try {
+        while (_) try {
             if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
             if (y = 0, t) op = [op[0] & 2, t.value];
             switch (op[0]) {
@@ -36,11 +36,10 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 var _a;
-Object.defineProperty(exports, "__esModule", { value: true });
+exports.__esModule = true;
 var extendedLog_1 = require("./extendedLog");
-var Express = require("express");
 var fs = require("fs");
-var minify = require('express-minify');
+var Express = require("express");
 require('dotenv-expand').expand(require('dotenv').config()); // load env and expand using dotenv-expand
 // #region SSL
 var isSSLDefined = process.env.SSL_KEY_PATH != undefined && process.env.SSL_PEM_PATH != undefined;
@@ -50,18 +49,19 @@ if (!isSSLDefined)
 else {
     sslKey = fs.readFileSync(process.cwd() + process.env.SSL_KEY_PATH);
     sslCert = fs.readFileSync(process.cwd() + process.env.SSL_PEM_PATH);
-    console.log("Running in HTTPS mode.");
+    console.log("Running in HTTPS mode. ".concat(process.cwd() + process.env.SSL_KEY_PATH));
 }
 // #endregion 
 var app = Express();
 var server = isSSLDefined ? require('https').createServer({ key: sslKey, cert: sslCert }, app) : require('http').createServer(app);
-var port = process.env.PORT || 55561;
+var port = process.env.PORT || 55562;
 var systemLaunchTime = new Date();
 var distFolderLocation = require('node:path').resolve((_a = process.env.DIST_FOLDER) !== null && _a !== void 0 ? _a : "./dist/");
 var Server = require("socket.io").Server;
 var io = new Server(server);
 var auth = (require("./auth"));
 var message = (require("./message"));
+var compression = require('compression');
 var siofu = require("socketio-file-upload");
 var cookieParser = require("cookie-parser");
 // initialization
@@ -69,17 +69,17 @@ var cookieParser = require("cookie-parser");
     return __awaiter(this, void 0, void 0, function () {
         return __generator(this, function (_a) {
             console.log("Static folder set to ".concat(distFolderLocation));
-            app.use(siofu.router);
-            app.use(minify());
-            app.use(Express.json());
-            app.use(cookieParser());
-            server.listen(port, function () { (0, extendedLog_1.logGreen)("Started listening on ".concat(port)); });
-            auth.init(io, app, isSSLDefined);
-            message.init(io, app);
             // Router definitions
             (function () {
                 app.get("/api/", function (req, res) { res.json({ message: "welcome to the entry API" }); });
             })();
+            app.use(cookieParser());
+            app.use(Express.json());
+            app.use(compression());
+            app.use(siofu.router);
+            server.listen(port, function () { (0, extendedLog_1.logGreen)("Started listening on ".concat(port)); });
+            auth.init(io, app, isSSLDefined);
+            message.init(io, app);
             // Catching signals and logging them
             (function () {
                 ['SIG', 'SIGHUP', 'SIGINT', 'SIGQUIT', 'SIGILL', 'SIGTRAP', 'SIGABRT', 'SIGBUS', 'SIGFPE', 'SIGUSR1', 'SIGSEGV', 'SIGUSR2', 'SIGTERM'].forEach(function (sig) {
@@ -89,6 +89,7 @@ var cookieParser = require("cookie-parser");
                     });
                 });
             })();
+            app.use(Express.static(distFolderLocation));
             expressRouterGet("/assets/*", function (req, res, next) { res.sendFile(req.path, { root: distFolderLocation }); }, false);
             expressRouterGet("/*", function (req, res, next) { res.sendFile("index.html", { root: distFolderLocation }); }, false);
             return [2 /*return*/];

@@ -1,10 +1,11 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
+exports.__esModule = true;
 exports.init = exports.onNewSocketConnected = exports.isSocketAuthenticated = exports.setResponseCookie = exports.checkForPermissionREST = exports.checkForPermission = exports.sockets = void 0;
 var extendedLog_1 = require("./extendedLog");
 var uuid_1 = require("uuid");
 var test_1 = require("./shared/test");
 var jwt = require("jsonwebtoken");
+require('dotenv-expand').expand(require('dotenv').config());
 var cookie = require('cookie');
 var SocketEntry = /** @class */ (function () {
     function SocketEntry(socket) {
@@ -40,12 +41,13 @@ var acceptTokens = [];
 var generatedTokens = [];
 // Tokens that are already confirmed to be logged-in
 var validatedTokens = [];
-// Not for production:
-// Only for dev:
-var correctPassword = "123";
-var correctUsername = "123";
+var correctUsername = process.env.CORRECT_USERNAME;
+var correctPassword = process.env.CORRECT_PASSWORD;
+if (correctUsername == 'undefined' || correctUsername === undefined)
+    (0, extendedLog_1.logYellow)("Password is not set correctly!");
 var siofu = require("socketio-file-upload");
 var message = require("./message");
+var settings_1 = require("./settings");
 function checkForPermission(socketInstance) {
     var _a, _b, _c, _d;
     if (((_b = (_a = socketInstance === null || socketInstance === void 0 ? void 0 : socketInstance.request) === null || _a === void 0 ? void 0 : _a.headers) === null || _b === void 0 ? void 0 : _b.cookie) == undefined) {
@@ -76,14 +78,14 @@ function setResponseCookie(res, jwtToken, isSecure) {
     // Set cookie in browser:
     return res
         .cookie(jwtCookieName, jwtToken, {
-        maxAge: 8.64e+7, secure: isSecure,
-        sameSite: true, httpOnly: true,
+        maxAge: settings_1.Settings.AuthTokenAge, secure: isSecure,
+        sameSite: true, httpOnly: true
     })
         // This cookie is for the client to check if jwt is presence, 
         // since the above cookie is not accessible by JS
         .cookie(jwtCookieAvailabliltyName, "true", {
-        maxAge: 8.64e+7, secure: isSecure,
-        sameSite: true, httpOnly: false,
+        maxAge: settings_1.Settings.AuthTokenAge, secure: isSecure,
+        sameSite: true, httpOnly: false
     });
 }
 exports.setResponseCookie = setResponseCookie;
@@ -188,7 +190,7 @@ function onNewSocketConnected(socketInstance) {
                 var jwtReceived = data.token;
                 var payload = jwt.verify(jwtReceived, process.env.JWT_SECRET);
                 var acceptToken = (0, uuid_1.v4)();
-                acceptTokens.push(new AcceptTokenEntry(acceptToken, payload.clientSocketID, 60000));
+                acceptTokens.push(new AcceptTokenEntry(acceptToken, payload.clientSocketID, settings_1.Settings.QRCodeTokenAge));
                 socketInstance.to(payload.clientSocketID).emit("device-token-granted", { token: acceptToken });
             }
         }
@@ -203,7 +205,7 @@ function onNewSocketConnected(socketInstance) {
             salt: (0, uuid_1.v4)()
         };
         var jwtToken = jwt.sign(jwtPayload, process.env.JWT_SECRET, {
-            expiresIn: 60, // seconds
+            expiresIn: settings_1.Settings.QRCodeTokenAge / 1000
         });
         socketInstance.emit("response request-device-token", { token: jwtToken });
         // jwt.sign({});
@@ -262,8 +264,8 @@ exports.init = init;
 function generateToken(isValidated) {
     if (isValidated === void 0) { isValidated = false; }
     var newToken = (0, uuid_1.v4)();
-    generatedTokens.push(new TokenEntry(newToken, 60000));
+    generatedTokens.push(new TokenEntry(newToken, settings_1.Settings.AuthTokenAge));
     if (isValidated)
-        validatedTokens.push(new TokenEntry(newToken, 60000));
+        validatedTokens.push(new TokenEntry(newToken, settings_1.Settings.AuthTokenAge));
     return newToken;
 }

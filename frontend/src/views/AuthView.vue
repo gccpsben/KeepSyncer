@@ -11,7 +11,7 @@ import { VueElement } from 'vue';
             <gridShortcut id="authPanel" columns="1fr" rows="auto 1fr">
                 <div><h3 style="margin-bottom:15px;">Login</h3></div>
                 <div v-if="!store.socketLoggedIn" class="fullSize">
-                    <gridShortcut class="fullSize" columns="1fr 1fr" rows="1fr">
+                    <gridShortcut id="panelSeparator" class="fullSize" columns="1fr 1fr" rows="1fr">
                         <gridShortcut id="loginPanel" class="fullSize" columns="1fr" rows="auto 1fr">
                             <h3 class="subheader">Login via username / password pair</h3>
                             <div class="fullSize center">
@@ -55,12 +55,24 @@ import { VueElement } from 'vue';
                             <gridShortcut columns="1fr" rows="1fr auto">
                                 <div class="fullSize center">
                                     <div id="qrcodeContainer">
-                                        <gridShortcut rows="1fr 5px" columns="1fr" v-if="store.authToken">
-                                            <qrcode id="qrcode" :size="200" level="L"
-                                            background="transparent" :value="store.authToken" foreground="white"></qrcode>  
+
+                                        <div v-if="store.authToken">
+                                            <div style="background: white;">
+                                                <qrcode id="qrcode" :size="500" level="L" background="white" :value="store.authToken" foreground="black"></qrcode>  
+                                            </div>
+                                            <progress max="1" :value="qrCodePercentage" style="height:5px;"></progress>
+                                        </div>
+                                        <div class="center fullSize" v-else>Loading...</div> 
+
+                                        <!-- <gridShortcut rows="min-content auto 5px" columns="1fr" v-if="store.authToken">
+                                            <div style="background:white;">
+                                                <qrcode id="qrcode" :size="500" level="L"
+                                                background="white" :value="store.authToken" foreground="black"></qrcode>  
+                                            </div>
+                                            <div></div>
                                             <progress max="1" :value="qrCodePercentage"></progress>
                                         </gridShortcut>
-                                        <div class="center fullSize" v-else>Loading...</div>
+                                        <div class="center fullSize" v-else>Loading...</div> -->
                                     </div>
                                 </div>
                             </gridShortcut>
@@ -172,8 +184,10 @@ export default
 
         #qrcode
         {
-            border:1px solid white;
+            // border:1px solid white;
             padding:5px;
+            width:200px !important;
+            height:200px !important;
         }
 
         #qrcodeContainer
@@ -182,7 +196,7 @@ export default
             padding:15px;
         }
 
-        progress { border:0px; background:transparent; appearance: none;}
+        progress { .fullSize; border:0px; background:transparent; appearance: none;}
         progress::-moz-progress-bar { background: @focus; }
         progress::-webkit-progress-value { background: @focus; }
     }
@@ -219,4 +233,29 @@ export default
         }
     }
 }
+
+@media (max-width:800px)
+{
+    #topDiv
+    {
+        .size(100vw, 100vh);
+        transition: all 0.5s ease;
+
+        & > div
+        {
+            .fullSize;
+
+            #authPanel
+            {
+                .fullSize;
+                
+                #loginPanel { padding:0; }
+                #codePanel { display:none !important; }
+                #panelSeparator { grid-template-columns: 1fr !important; }
+            }
+        }
+    }
+}
+    
+
 </style>

@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.init = exports.allMessages = void 0;
 var auth_1 = require("./auth");
-var types_1 = require("@shared/types");
+var test_1 = require("../shared/test");
 exports.allMessages = [];
 function init(socketIOInstance, expressInstance) {
     expressInstance.get("/api/refreshMessages", function (req, res) {
@@ -30,7 +30,7 @@ function init(socketIOInstance, expressInstance) {
     socketIOInstance.on("connection", function (socket) {
         socket.on("message", function (data) {
             if ((0, auth_1.checkForPermission)(socket)) {
-                var entry = new types_1.StringMessageEntry(socket.id, data.message);
+                var entry = new test_1.StringMessageEntry(socket.id, data.message);
                 for (var _i = 0, sockets_1 = auth_1.sockets; _i < sockets_1.length; _i++) {
                     var soc = sockets_1[_i];
                     if (!soc.isLoggedIn)

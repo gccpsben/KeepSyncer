@@ -1,0 +1,16 @@
+{
+    "name": "KeepSyncer",
+    "short_name": "KeepSyncer",
+    "start_url": "/home",
+    "display": "standalone",
+    "background_color": "#fff",
+    "description": "An instant messager.",
+    "icons": 
+    [
+        {
+            "src": "/appIcon_144.png",
+            "sizes": "144x144",
+            "type": "image/png"
+        }
+    ]
+}

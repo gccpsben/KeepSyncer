@@ -3,13 +3,14 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "dev": "vite --port 5175",
+    "dev": "vite --port 5175 --host",
     "build": "run-p type-check build-only",
     "preview": "vite preview",
     "build-only": "vite build",
     "type-check": "vue-tsc --noEmit -p tsconfig.app.json --composite false"
   },
   "dependencies": {
+    "@vitejs/plugin-basic-ssl": "^1.0.1",
     "axios": "^1.4.0",
     "html5-qrcode": "^2.3.8",
     "pinia": "^2.0.36",

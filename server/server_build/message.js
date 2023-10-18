@@ -1,5 +1,5 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
+exports.__esModule = true;
 exports.init = exports.allMessages = void 0;
 var auth_1 = require("./auth");
 var test_1 = require("./shared/test");
@@ -19,6 +19,19 @@ function init(socketIOInstance, expressInstance) {
             if ((0, auth_1.checkForPermissionREST)(req, res)) {
                 var fileNameRequested = req.query["filename"].toString();
                 res.download("./".concat(fileNameRequested), fileNameRequested, { root: "./temp/" });
+            }
+        }
+        catch (error) {
+            res
+                .status(400)
+                .json({ error: "Invalid request." });
+        }
+    });
+    expressInstance.get("/api/view", function (req, res) {
+        try {
+            if ((0, auth_1.checkForPermissionREST)(req, res)) {
+                var fileNameRequested = req.query["filename"].toString();
+                res.sendFile("./".concat(fileNameRequested), { root: "./temp/" });
             }
         }
         catch (error) {

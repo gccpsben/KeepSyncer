@@ -1,9 +1,10 @@
 import { Socket } from "socket.io";
-import { logGreen } from "./extendedLog";
+import { logGreen, logYellow } from "./extendedLog";
 import { v4 as uuidv4 } from 'uuid';
 import { CookieOptions, Request, Response } from "express";
 import { FileMessageEntry, MessageEntry, MessageType, StringMessageEntry } from './shared/test';
 import * as jwt from 'jsonwebtoken';
+require('dotenv-expand').expand(require('dotenv').config());
 var cookie = require('cookie');
 
 class SocketEntry
@@ -15,7 +16,7 @@ class SocketEntry
 
 class TokenEntry
 {
-    token: string;
+    token: string; 
     expireDate: Date;
     
     constructor(token:string, expireInMS: number) { this.token = token; this.expireDate = new Date(Date.now() + expireInMS); }
@@ -47,13 +48,13 @@ var generatedTokens: Array<TokenEntry> = [];
 // Tokens that are already confirmed to be logged-in
 var validatedTokens: Array<TokenEntry> = [];
 
-// Not for production:
-// Only for dev:
-const correctPassword = "123";
-const correctUsername = "123";
+const correctUsername = process.env.CORRECT_USERNAME;
+const correctPassword = process.env.CORRECT_PASSWORD;
+if (correctUsername == 'undefined' || correctUsername === undefined) logYellow(`Password is not set correctly!`);
 
 const siofu = require("socketio-file-upload");
 import * as message from './message';
+import { Settings } from "./settings";
 
 export function checkForPermission(socketInstance: Socket)
 {
@@ -93,7 +94,7 @@ export function setResponseCookie(res: Response, jwtToken: string, isSecure:bool
 
     .cookie(jwtCookieName, jwtToken, 
     {
-        maxAge: 8.64e+7, secure: isSecure,
+        maxAge: Settings.AuthTokenAge, secure: isSecure,
         sameSite: true, httpOnly: true,
     } as CookieOptions)
 
@@ -101,7 +102,7 @@ export function setResponseCookie(res: Response, jwtToken: string, isSecure:bool
     // since the above cookie is not accessible by JS
     .cookie(jwtCookieAvailabliltyName, "true", 
     {
-        maxAge: 8.64e+7, secure: isSecure,
+        maxAge: Settings.AuthTokenAge, secure: isSecure,
         sameSite: true, httpOnly: false,
     });
 }
@@ -228,7 +229,7 @@ export function onNewSocketConnected(socketInstance: Socket)
                 };
 
                 var acceptToken = uuidv4();
-                acceptTokens.push(new AcceptTokenEntry(acceptToken, payload.clientSocketID, 60000));
+                acceptTokens.push(new AcceptTokenEntry(acceptToken, payload.clientSocketID, Settings.QRCodeTokenAge));
                 socketInstance.to(payload.clientSocketID).emit(`device-token-granted`, { token: acceptToken });
             }
         }
@@ -249,7 +250,7 @@ export function onNewSocketConnected(socketInstance: Socket)
 
         var jwtToken = jwt.sign(jwtPayload, process.env.JWT_SECRET!, 
         {
-            expiresIn: 60, // seconds
+            expiresIn: Settings.QRCodeTokenAge / 1000, // seconds
         });
         socketInstance.emit(`response request-device-token`, {token: jwtToken});
         // jwt.sign({});
@@ -316,7 +317,7 @@ export function init (socketIOInstance: Socket, expressInstance: any, isRunningH
 function generateToken(isValidated:boolean=false)
 {
     var newToken = uuidv4();
-    generatedTokens.push(new TokenEntry(newToken, 60000));
-    if (isValidated) validatedTokens.push(new TokenEntry(newToken, 60000));
+    generatedTokens.push(new TokenEntry(newToken, Settings.AuthTokenAge));
+    if (isValidated) validatedTokens.push(new TokenEntry(newToken, Settings.AuthTokenAge));
     return newToken;
 }

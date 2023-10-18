@@ -26,7 +26,7 @@ export class StringMessageEntry implements MessageEntry
         this.time = new Date().toISOString(); 
         if (time != undefined) this.time = time;
         this.senderID = senderID; 
-        this.message = `wrapped_${message}_wrapped`; 
+        this.message = message; 
     }
 }
 
@@ -37,6 +37,7 @@ export class FileMessageEntry implements MessageEntry
     fileName: string = "";
     fileSize: number = 0;
     downloadLink: string = "";
+    viewLink: string = "";
     type: MessageType = MessageType.file;
     constructor(senderID: string, fileName:string, fileSize: number, time: string|undefined=undefined) 
     { 
@@ -44,5 +45,6 @@ export class FileMessageEntry implements MessageEntry
         if (time != undefined) this.time = time;
         this.senderID = senderID; this.fileName = fileName; this.fileSize = fileSize; 
         this.downloadLink = `./api/download?filename=${this.fileName}`;
+        this.viewLink = `./api/view?filename=${this.fileName}`;
     }
 }

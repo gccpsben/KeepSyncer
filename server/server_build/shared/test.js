@@ -1,11 +1,11 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
+exports.__esModule = true;
 exports.FileMessageEntry = exports.StringMessageEntry = exports.MessageEntry = exports.MessageType = void 0;
 var MessageType;
 (function (MessageType) {
     MessageType[MessageType["string"] = 0] = "string";
     MessageType[MessageType["file"] = 1] = "file";
-})(MessageType || (exports.MessageType = MessageType = {}));
+})(MessageType = exports.MessageType || (exports.MessageType = {}));
 var MessageEntry = /** @class */ (function () {
     function MessageEntry(senderID) {
         this.senderID = "";
@@ -25,7 +25,7 @@ var StringMessageEntry = /** @class */ (function () {
         if (time != undefined)
             this.time = time;
         this.senderID = senderID;
-        this.message = "wrapped_".concat(message, "_wrapped");
+        this.message = message;
     }
     return StringMessageEntry;
 }());
@@ -37,6 +37,7 @@ var FileMessageEntry = /** @class */ (function () {
         this.fileName = "";
         this.fileSize = 0;
         this.downloadLink = "";
+        this.viewLink = "";
         this.type = MessageType.file;
         this.time = new Date().toISOString();
         if (time != undefined)
@@ -45,6 +46,7 @@ var FileMessageEntry = /** @class */ (function () {
         this.fileName = fileName;
         this.fileSize = fileSize;
         this.downloadLink = "./api/download?filename=".concat(this.fileName);
+        this.viewLink = "./api/view?filename=".concat(this.fileName);
     }
     return FileMessageEntry;
 }());

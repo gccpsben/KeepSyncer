@@ -2,8 +2,11 @@
 node_modules
 /dist
 /ssl/*
+/server/ssl/*
 /server/.env
+/server/dist
 /frontend/.env
+/server/temp
 
 # local env files
 .env

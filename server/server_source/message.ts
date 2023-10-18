@@ -3,6 +3,7 @@ import { checkForPermission, checkForPermissionREST, sockets } from "./auth";
 import { Request, Response } from "express";
 import { FileMessageEntry, MessageEntry, MessageType, StringMessageEntry } from './shared/test';
 import * as fs from 'fs';
+import * as fsp from 'fs/promises';
 
 export var allMessages = [] as Array<MessageEntry>;
 
@@ -23,8 +24,26 @@ export function init(socketIOInstance: Socket, expressInstance: any)
         {
             if (checkForPermissionREST(req,res))
             {
-                var fileNameRequested = req.query["filename"]!.toString();
+                let fileNameRequested = req.query["filename"]!.toString();
                 res.download(`./${fileNameRequested}`, fileNameRequested, { root: "./temp/" });
+            }
+        }
+        catch(error) 
+        { 
+            res
+            .status(400)
+            .json({ error:"Invalid request." }); 
+        }
+    });
+
+    expressInstance.get("/api/view", (req:Request, res:Response) => 
+    {
+        try
+        {
+            if (checkForPermissionREST(req,res))
+            {
+                let fileNameRequested = req.query["filename"]!.toString();
+                res.sendFile(`./${fileNameRequested}` , { root: "./temp/" });
             }
         }
         catch(error) 

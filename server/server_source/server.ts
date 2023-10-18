@@ -2,10 +2,9 @@
 
 import { CookieOptions, Request, Response } from "express";
 import { logGreen, logRed, log, logBlue, getLog } from "./extendedLog";
+import * as fs from 'fs';
 
 const Express = require("express");
-var fs = require("fs");
-var minify = require('express-minify');
 require('dotenv-expand').expand(require('dotenv').config()); // load env and expand using dotenv-expand
 
 // #region SSL
@@ -16,19 +15,20 @@ else
 { 
     sslKey = fs.readFileSync(process.cwd() + process.env.SSL_KEY_PATH);
     sslCert = fs.readFileSync(process.cwd() + process.env.SSL_PEM_PATH);
-    console.log("Running in HTTPS mode.");
+    console.log(`Running in HTTPS mode. ${process.cwd() + process.env.SSL_KEY_PATH}`);
 }
 // #endregion 
 
 var app = Express();
 var server = isSSLDefined ? require('https').createServer({ key:sslKey, cert:sslCert }, app) : require('http').createServer(app);
-var port = process.env.PORT || 55561;
+var port = process.env.PORT || 55562;
 var systemLaunchTime = new Date();
 var distFolderLocation = require('node:path').resolve(process.env.DIST_FOLDER ?? "./dist/");
 const { Server } = require("socket.io");
 const io = new Server(server);
 const auth = (require("./auth"));
 const message = (require("./message"));
+const compression = require('compression');
 const siofu = require("socketio-file-upload");
 const cookieParser = require("cookie-parser");
 
@@ -36,21 +36,22 @@ const cookieParser = require("cookie-parser");
 (async function () 
 {
     console.log(`Static folder set to ${distFolderLocation}`);
-
-    app.use(siofu.router);
-    app.use(minify());
-    app.use(Express.json());
-    app.use(cookieParser());
-    server.listen(port, () => { logGreen(`Started listening on ${port}`); });
-
-    auth.init(io, app, isSSLDefined);
-    message.init(io, app);
-
+    
     // Router definitions
     (function()
     {
         app.get("/api/", (req:any, res:any) => { res.json({message:"welcome to the entry API"}); });
     })();
+
+    app.use(cookieParser());
+    app.use(Express.json());
+    app.use(compression());
+    app.use(siofu.router);
+
+    server.listen(port, () => { logGreen(`Started listening on ${port}`); });
+
+    auth.init(io, app, isSSLDefined);
+    message.init(io, app);
 
     // Catching signals and logging them
     (function()
@@ -66,6 +67,7 @@ const cookieParser = require("cookie-parser");
         });
     })();
 
+    app.use(Express.static(distFolderLocation));
     expressRouterGet("/assets/*", (req, res, next) => { res.sendFile(req.path, { root: distFolderLocation }); }, false);
     expressRouterGet("/*", (req, res, next) => { res.sendFile("index.html", { root: distFolderLocation }); }, false);
 

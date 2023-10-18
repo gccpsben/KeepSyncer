@@ -5,10 +5,11 @@
     "outDir":"./server_build",
     "experimentalDecorators":true,
     "emitDecoratorMetadata": true,
-    "rootDirs": ["./server_source"],
+    "rootDirs": ["./server_source", "../shared"],
   },
   "include": [
     "server_source/**/*.ts",
+    "../shared/**/*.ts"
   ],
   "exclude": [
     "node_modules"
