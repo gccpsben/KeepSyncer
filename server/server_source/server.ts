@@ -3,13 +3,16 @@
 import { CookieOptions, Request, Response } from "express";
 import { logGreen, logRed, log, logBlue, getLog } from "./extendedLog";
 import * as fs from 'fs';
+import { mangleTempNames, rewriteTempFiles } from "./secureDelete";
+import helmet from "helmet";
+import { rateLimit } from 'express-rate-limit';
 
 const Express = require("express");
 require('dotenv-expand').expand(require('dotenv').config()); // load env and expand using dotenv-expand
 
 // #region SSL
-var isSSLDefined = process.env.SSL_KEY_PATH != undefined && process.env.SSL_PEM_PATH != undefined;
-var sslKey, sslCert;
+let isSSLDefined = process.env.SSL_KEY_PATH != undefined && process.env.SSL_PEM_PATH != undefined;
+let sslKey: Buffer, sslCert: Buffer;
 if (!isSSLDefined) console.log("SSL_KEY_PATH or SSL_PEM_PATH isn't defined in the env file. Running in HTTP mode.");
 else 
 { 
@@ -19,11 +22,20 @@ else
 }
 // #endregion 
 
-var app = Express();
-var server = isSSLDefined ? require('https').createServer({ key:sslKey, cert:sslCert }, app) : require('http').createServer(app);
-var port = process.env.PORT || 55562;
-var systemLaunchTime = new Date();
-var distFolderLocation = require('node:path').resolve(process.env.DIST_FOLDER ?? "./dist/");
+let app = Express();
+app.use(helmet());
+const limiter = rateLimit(
+{
+	windowMs: 5 * 60 * 1000, // 5 minutes
+	limit: 100, // Limit each IP to 100 requests per `window`.
+	standardHeaders: 'draft-7', // draft-6: `RateLimit-*` headers; draft-7: combined `RateLimit` header
+	legacyHeaders: false, // Disable the `X-RateLimit-*` headers.
+})
+app.use(limiter); // Apply the rate limiting middleware to all requests.
+
+let server = isSSLDefined ? require('https').createServer({ key:sslKey, cert:sslCert }, app) : require('http').createServer(app);
+let port = process.env.PORT || 55562;
+let distFolderLocation = require('node:path').resolve(process.env.DIST_FOLDER ?? "./dist/");
 const { Server } = require("socket.io");
 const io = new Server(server);
 const auth = (require("./auth"));
@@ -58,11 +70,24 @@ const cookieParser = require("cookie-parser");
     {
         ['SIG', 'SIGHUP', 'SIGINT', 'SIGQUIT', 'SIGILL', 'SIGTRAP', 'SIGABRT','SIGBUS', 'SIGFPE', 'SIGUSR1', 'SIGSEGV', 'SIGUSR2', 'SIGTERM'].forEach(sig =>
         {
-            process.on(sig, () =>
+            process.on(sig, async () =>
             {
-                logRed('Server shutting down with signal=' + sig);
-
-                setTimeout(() => { process.exit(1); }, 100);
+                try 
+                {
+                    logRed('Server shutting down with signal=' + sig);
+                    logRed(`Mangling filenames in temp folder, round = 15:`);
+                    await mangleTempNames(15);
+                    logRed(`Mangling content in temp folder, round = 3:`);
+                    await rewriteTempFiles(3);
+                    logRed(`Finished`);
+                    process.exit(0);
+                }
+                catch(ex)
+                {
+                    console.log(ex);
+                    logRed(`Error occured during clean:`);
+                    process.exit(0);
+                }
             });
         });
     })();
